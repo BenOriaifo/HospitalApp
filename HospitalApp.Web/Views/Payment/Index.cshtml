@@ -1,0 +1,264 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+<div class="row">
+    <div class="container">
+        <h2>Payments Record</h2>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#paymentModal">Add Payment</button><br /><br />
+        <div style="width:100%; margin:0 auto;">
+            <table id="paymentGrid" class="table table-striped table-bordered dt-responsive nowrap" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Patient Name</th>
+                        <th>Amount (#)</th>
+                        <th>Date</th>
+                        <th>Captured By</th>
+                        <th>Payment For</th>
+                        <th>Payment Mode</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+
+        <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">×</button>
+                        <h4 class="modal-title" id="myModalLabel">Add Patient</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Patient ID</label>
+                                        <input type="text" class="form-control" id="patientId" autocomplete="off" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Amount Paid</label>
+                                        <input type="text" class="form-control" id="amountPaid" autocomplete="off" />
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Payment For</label>
+                                        <input type="text" class="form-control" id="paymentFor" autocomplete="off" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Payment Mode</label>
+                                        <select id="paymentMode" class="form-control">
+                                            <option class="active">Select Mode</option>
+                                            <option>Cheque</option>
+                                            <option>Cash</option>
+                                            <option>Transfer</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>Captured By</label>
+                                        @*<input type="text" class="form-control" id="capturedBy" autocomplete="off" />*@
+                                        <select id="capturedBy" class="form-control" >
+                                            <option class="active">Select Mode</option>
+                                            @*<option>Cheque</option>
+                                            <option>Cash</option>
+                                            <option>Transfer</option>*@
+                                        </select>
+                                    </div>
+                                </div>                                
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="btnAdd" onclick="return Add();">Add</button>
+                        <button type="button" class="btn btn-default" onclick="return clearFields();" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Scripts/jquery-1.10.2.min.js"></script>
+<script src="~/Scripts/jquery.dataTables.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#paymentGrid").DataTable({
+
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": true, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            "pageLength": 10,
+
+            "ajax": {
+                "url": "/Payment/LoadData",
+                "type": "POST",
+                "datatype": "json"
+            },
+
+            "columnDefs":
+            [{
+                "targets": [0],
+                "searchable": true
+            },
+            {
+                "targets": [1],
+                "searchable": true
+            },
+            {
+                "targets": [2],
+                "searchable": true
+            },
+            {
+                "targets": [3],
+                "searchable": true
+            },
+            {
+                "targets": [4],
+                "searchable": true
+            },
+            {
+                "targets": [5],
+                "searchable": true
+            },
+            {
+                "targets": [6],
+                "searchable": true
+            }],
+
+            "columns": [
+                  { "data": "PatientID", "name": "PatientID", "autoWidth": true },
+                  { "data": "PatientFullName", "name": "PatientFullName", "autoWidth": true },
+                  { "data": "AmountPaid", "name": "AmountPaid", "autoWidth": true },
+                  { "data": "Date", "title": "Date", "name": "ContactName", "autoWidth": true },
+                  { "data": "PaymentCapturedBy", "name": "PaymentCapturedBy", "autoWidth": true },
+                  { "data": "PaymentFor", "name": "PaymentFor", "autoWidth": true },
+                  { "data": "PaymentMode", "name": "PaymentMode", "autoWidth": true },                  
+            ]
+
+        });
+    });
+
+    var emps = [];
+
+        $.ajax({
+            url: "/Payment/GetEmployees",
+            type: "GET",
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                emps = data;
+
+                var empDropDown = document.getElementById("capturedBy");
+
+                //Add the Options to the DropDownList.
+                for (var i = 0; i < emps.length; i++) {
+                    var option = document.createElement("OPTION");
+
+                    //Set Customer Name in Text part.
+                    option.innerHTML = emps[i].Name;
+
+                    //Set CustomerId in Value part.
+                    option.value = emps[i].Id;
+
+                    //Add the Option element to DropDownList.
+                    empDropDown.options.add(option);
+                }
+            },
+            error: function (data) {
+                console.log(JSON.stringify(data));
+            }
+        });
+    
+
+    //Valdidation using jquery
+    function validate() {
+        var isValid = true;
+        if ($('#patientId').val() == "") {
+            $('#patientId').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#patientId').css('border-color', 'lightgrey');
+        }
+        if ($('#amountPaid').val() == "") {
+            $('#amountPaid').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#amountPaid').css('border-color', 'lightgrey');
+        }
+        if ($('#paymentFor').val() == "") {
+            $('#paymentFor').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#paymentFor').css('border-color', 'lightgrey');
+        }
+        if ($('#paymentMode').val() == "") {
+            $('#paymentMode').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#paymentMode').css('border-color', 'lightgrey');
+        }
+        if ($('#capturedBy').val() == "") {
+            $('#capturedBy').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#capturedBy').css('border-color', 'lightgrey');
+        }
+        return isValid;
+    }
+
+    function Add() {
+        var res = validate();
+        if (res == false) {
+            return false;
+        }
+        var paymentObj = {
+            patientId: $('#patientId').val(),
+            amountPaid: $('#amountPaid').val(),
+            paymentFor: $('#paymentFor').val(),
+            paymentMode: $('#paymentMode').val(),
+            paymentCapturedBy: $('#capturedBy :selected').text()
+        };
+        console.log(JSON.stringify(paymentObj))
+        $.ajax({
+            url: "/Payment/Add",
+            data: JSON.stringify(paymentObj),
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            success: function (data) {
+                $('#paymentModal').modal('hide');
+                $('#paymentGrid').DataTable().ajax.reload();
+                clearFields();
+                alert(data)
+            },
+            error: function (errormessage) {
+                alert(data)
+            }
+        });
+    }
+
+    function clearFields() {
+        $('#patientId').val("");
+        $('#paymentFor').val("");
+        $('#capturedBy option:first').prop('selected', true);
+        $('#amountPaid').val("");        
+        $('#paymentMode option:first').prop('selected', true);
+    }
+</script>
+
+
